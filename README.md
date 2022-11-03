@@ -6,3 +6,5 @@ In this theme, we will develop a Self-Balancing Bike, which will deliver various
 3) Pickup and delivery in the arena
 
 Learnings: Robot Simulation (CoppeliaSim), Control Systems, Euler-Lagrange Mechanics, Linear Quadratic Regulator, Lua Programming, Octave Programming, 3D Designing
+
+<img src = "https://portal.e-yantra.org/img/theme/db.png" alt = "image of delivery bike">
