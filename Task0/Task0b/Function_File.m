@@ -14,7 +14,7 @@ function [x_1,x_2] = find_equilibrium_points(x1_dot, x2_dot)
   x1_dot == 0;
   x2_dot == 0;
   ################## ADD YOUR CODE HERE ######################
-  [x_1, x_2]=solve(x1_dot, x2_dot);
+  [x_1,x_2]=solve(x1_dot,x2_dot)
   ############################################################  
   x_1=double(x_1);
   x_2=double(x_2);
@@ -38,9 +38,9 @@ function jacobian_matrices = find_jacobian_matrices(x_1, x_2, x1_dot, x2_dot)
   solutions = [x_1, x_2];
   jacobian_matrices = {};
   ################## ADD YOUR CODE HERE ######################
-  jacobi=jacobian([x1_dot;x2_dot]);
-  for i=1:length(x_1),
-  jacobian_matrices(:,i)=double(subs(jacobi,{x1,x2},solutions(i,:)));
+  jacobians=jacobian([x1_dot;x2_dot])
+  for k = 1:size(solutions, 1)
+   jacobian_matrices{k} = double(subs(jacobians, {x1 x2}, [x_1(k,1) x_2(k,1)]));
   endfor
   ############################################################  
 endfunction
@@ -62,26 +62,24 @@ function [eigen_values stability] = check_eigen_values(x_1, x_2, jacobian_matric
   stability = {};
   eigen_values = {};
   for k = 1:length(jacobian_matrices)
-    matrix = jacobian_matrices{:,k};
+    matrix = jacobian_matrices{k};
     flag = 1;
     ################## ADD YOUR CODE HERE ######################
-    eigen_values{1,k}=eig(matrix);
-    x=eigen_values{1,k};
-    for i=1:rows(x),
-    if real(x(i))>0,
-    flag=0;
-    endif
-    endfor
+    eigen_values{k}=eig(matrix);
+    for j = 1:length(eigen_values{k})
+      if (real(eigen_values{k}(j))>0)
+        flag=0;
+        break;
+      endif
+     endfor
     ############################################################
     if flag == 1
-      fprintf("The system is stable for equilibrium point (%d, %d) \n",double(x_1(k)),double(x_2(k)));
-      stability{1,k} = "Stable";
+      fprintf("PThe system is stable for equilibrium point (%d, %d) \n",double(x_1(k)),double(x_2(k)));
+      stability{k} = "Stable";
     else
-      fprintf("The system is unstable for equilibrium point (%d, %d) \n",double(x_1(k)),double(x_2(k)));
-      stability{1,k} = "Unstable";
-    
+      fprintf("PThe system is unstable for equilibrium point (%d, %d) \n",double(x_1(k)),double(x_2(k)));
+      stability{k} = "Unstable";
     endif
-  
   endfor
 endfunction
 

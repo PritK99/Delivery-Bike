@@ -12,7 +12,7 @@ printf("\nChecking output values with sample output")
 if(cellfun(@isequal, db1, dbout))
   printf("\nOutput matched\n")
 else
-  printf("\nOutput did not match\n")
+  printf("\nOutpput did not match\n")
 endif
 
 printf("\n\nChecking datatype for the output genereated\n")
