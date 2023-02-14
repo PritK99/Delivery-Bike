@@ -12,7 +12,7 @@ int pwm = 0;
 float w2=0;
 float target_vel = 0.0;
 int loop_count=0;
-int lt=-1;
+int lt=5;
 
 
 //Declare NIDEC Motor pins
@@ -24,8 +24,8 @@ int lt=-1;
 #define MAX_RPS 50
 #define MAX_TORQUE 255
 volatile int encoderPosAL = 0;                  // left count
-float y_setpoint[4] = {-0.07,0,0,0};
-float k[4] =  {-2000 ,  -1000  ,  -10  ,  -5};
+float y_setpoint[4] = {-0.03,0,0,0};
+float k[4] =  {-72.909996   ,-7.821821   ,-0.100000  , -0.121669};
 
 
 
@@ -178,20 +178,20 @@ void setup()
   Wire.begin();
   
   byte status = mpu.begin();
-  Serial.print(F("MPU6050 status: "));
-  Serial.println(status);
+  //Serial.print(F("MPU6050 status: "));
+  //Serial.println(status);
   while(status!=0){ } // stop everything if could not connect to MPU6050
-  Serial.println("MPU begin done!\n");
+  //Serial.println("MPU begin done!\n");
 
-  Serial.println("Begin Device initialization:\n");
+  //Serial.println("Begin Device initialization:\n");
   nidec_motor_init();
-  Serial.println("NIDEC initialized\n");
+  //Serial.println("NIDEC initialized\n");
   timer1_init(); 
-  Serial.println("Timer initialized\n");
+  //Serial.println("Timer initialized\n");
   //servo_init();
-  Serial.println("Servo initialized\n");
+  //Serial.println("Servo initialized\n");
   dc_motor_init();
-  Serial.println("DC Motor initialized\n");
+  //Serial.println("DC Motor initialized\n");
   pinMode(encodPinAL, INPUT);
   pinMode(encodPinBL, INPUT);
   digitalWrite(encodPinAL, HIGH);               // turn on pullup resistor
@@ -217,6 +217,7 @@ int Tuning() {
       if (cmd == '+')    k[0] += val;
       if (cmd == '-')    k[0] -= val;
       if (cmd == '=')    k[0] = val;
+      
       printValues();
       Serial.println("1");
       break;
@@ -238,6 +239,9 @@ int Tuning() {
       if (cmd == '=')    k[3] = val;
       printValues();
       break; 
+    case 5:
+      printValues();
+      break;
       
   }
 }
@@ -268,18 +272,26 @@ void loop()
   
   float w1 = (theta - prev_theta)/dt;
   
+  int rotations = int(encoderPosAL/98);
+
+
  
   encoderPosAL=encoderPosAL%98;
   float alpha = encoderPosAL*0.06411413579;
-  if ((torque>0 and prev_alpha>alpha )or (torque<0 and alpha>prev_alpha)){
-     w2 = -(alpha-prev_alpha)/dt;
+  if ((pwm>0 and prev_alpha>alpha )or (pwm<0 and alpha>prev_alpha)){
+     w2 = (-(alpha-prev_alpha) + M_PI*2*rotations)/dt;
   }
   else{
-  w2 = (alpha-prev_alpha)/dt;
+  w2 = ((alpha-prev_alpha)+M_PI*2*rotations)/dt;
   }
   
   
   float y[4] = {theta, w1, alpha, w2};
+//  Serial.print("Y0: ");
+//  Serial.print(y[0]);
+//  Serial.print("Theta : ");
+//  Serial.print(theta);
+
   
   // float k[4] =  {-1.2 , -0.26764792,  -0.00031623,  -0.00112835};
   
@@ -287,27 +299,27 @@ void loop()
   {
     torque = torque - k[i]*(y[i]-y_setpoint[i]);
   }
-  torque=int(max(min(torque,MAX_TORQUE),-MAX_TORQUE));
+  target_vel= int(max(min( torque*dt/0.0002125,MAX_RPS),-MAX_RPS));
 //  target_vel = (w2+torque*dt/0.000375);
 //  target_vel=max(min(target_vel,MAX_RPS),-MAX_RPS);
 //  
-//  if(target_vel>0 and target_vel<=MAX_RPS)
-//  {
-//    pwm = 255*target_vel/MAX_RPS;
-//  }
-//  else if(target_vel>MAX_RPS)
-//  {
-//    pwm = 255;   
-//  }
-//  else if(target_vel < 0 and target_vel>=-MAX_RPS)
-//  {
-//    pwm = 255*target_vel/MAX_RPS;
-//  }
-//  else if(target_vel<-MAX_RPS)
-//  {
-//    pwm = -255;
-//  }
-//  
+  if(target_vel>0 and target_vel<=MAX_RPS)
+  {
+    pwm = 255*target_vel/MAX_RPS;
+  }
+  else if(target_vel>MAX_RPS)
+  {
+    pwm = 255;   
+  }
+  else if(target_vel < 0 and target_vel>=-MAX_RPS)
+  {
+    pwm = 255*target_vel/MAX_RPS;
+  }
+  else if(target_vel<-MAX_RPS)
+  {
+    pwm = -255;
+  }
+  
 //  if (torque>0)
 //  {
 //    nidec_motor_control(pwm);
@@ -329,7 +341,7 @@ void loop()
 ////    dc_motor_backward(0);
 //  }
   if (torque!=0){
-  nidec_motor_control(torque);
+  nidec_motor_control(pwm);
   }
   else{
   nidec_motor_brake();
@@ -337,8 +349,8 @@ void loop()
   prev_theta = theta;
   prev_alpha = alpha;
 //  printValues();
-  Serial.print("Theta : ");
-  Serial.print(theta);
+ 
+  
 //  Serial.print(" Torque : ");
 //  Serial.print(torque);
 //  Serial.print(" Velocity : ");
@@ -349,12 +361,20 @@ void loop()
 //  Serial.print(encoderPosAL);
 //  Serial.print(" PWM : ");
 //  Serial.println(pwm);
-   Serial.print(" Torque : ");
-  Serial.println(torque);
+//   Serial.print(" Torque : ");
+//   Serial.println(torque);
 //  Serial.println("W2 : ");
 //  Serial.print(w2);
 //  Serial.print("Time: ");
 //  Serial.println(dt);
+//    Plotter   //
+//  Serial.print(theta);
+//  Serial.print(" ");
+  Serial.print(target_vel);
+  Serial.println(w2);
+  //Serial.print(" ");
+
+  
   t2 = t1;
   loop_count=0;
 //  delay(100);
