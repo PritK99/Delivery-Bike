@@ -1,0 +1,2 @@
+https://raw.githubusercontent.com/eYSIP-2020/eysip2020-36-eYFi-Mega-ArduinoIDE/master/e-Yantra-ESP32/eYFi-Mega%20board/package_eyantra_eYFi-Mega-ESP32_index.json
+https://raw.githubusercontent.com/eYSIP-2020/eysip2020-36-eYFi-Mega-ArduinoIDE/master/e-Yantra-ATmega2560/eYFi-Mega%20board/package_eyantra_eYFi-Mega-Atmega2560_index.json
