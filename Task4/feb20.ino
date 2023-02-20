@@ -14,7 +14,7 @@ float w2 = 0;
 float w1 = 0;
 float target_vel = 0.0;
 int loop_count = 0;
-int lt = 2;
+int lt = 10;
 float prev_w2 = 0;
 volatile long int random_angle = 0;
 int count = 0;
@@ -22,7 +22,7 @@ float alpha = 0 ;
 
 #define brake 8      // brake=0, go=1
 #define cw 4         // cw=1, ccw=0
-#define rpm 9        // PWM=255=stop, PWM=0=max_speed
+#define rpm 9        // 
 #define encodPinAL 2 // encoder A pin (INT4)
 #define encodPinBL 3 // encoder B pin (INT5)
 #define MAX_RPS 314
@@ -32,7 +32,7 @@ volatile int encoderPosAL = 0;
 volatile int prev_encoderPosAL = 0; // left count
 float y_setpoint[4] = {0.0, 0, 0, 0};
 
-float k[4] = {-9.148998,  -0.931186,  -0.013188,  -0.016083}; // negative sign in first two values mean the reaction wheel will move opposite to the direction of fall
+float k[4] = { -15,   -0.5 ,  -0.01 ,  -0.03}; // negative sign in first two values mean the reaction wheel will move opposite to the direction of fall
 
 int pos = 0;
 
@@ -147,47 +147,47 @@ int Tuning()
   Serial.println(param);
   switch (param)
   {
-  case 1:
-    if (cmd == '+')
-      k[0] += val;
-    if (cmd == '-')
-      k[0] -= val;
-    if (cmd == '=')
-      k[0] = val*0.1;
+    case 1:
+      if (cmd == '+')
+        k[0] += val;
+      if (cmd == '-')
+        k[0] -= val;
+      if (cmd == '=')
+        k[0] = val * 0.1;
 
-    printValues();
-    Serial.println("1");
-    break;
-  case 2:
-    if (cmd == '+')
-      k[1] += val;
-    if (cmd == '-')
-      k[1] -= val;
-    if (cmd == '=')
-      k[1] = val*0.1;
-    printValues();
-    break;
-  case 3:
-    if (cmd == '+')
-      k[2] += val;
-    if (cmd == '-')
-      k[2] -= val;
-    if (cmd == '=')
-      k[2] = val * 0.01;
-    printValues();
-    break;
-  case 4:
-    if (cmd == '+')
-      k[3] += val;
-    if (cmd == '-')
-      k[3] -= val;
-    if (cmd == '=')
-      k[3] = val * 0.01;
-    printValues();
-    break;
-  case 5:
-    printValues();
-    break;
+      printValues();
+      Serial.println("1");
+      break;
+    case 2:
+      if (cmd == '+')
+        k[1] += val;
+      if (cmd == '-')
+        k[1] -= val;
+      if (cmd == '=')
+        k[1] = val * 0.1;
+      printValues();
+      break;
+    case 3:
+      if (cmd == '+')
+        k[2] += val;
+      if (cmd == '-')
+        k[2] -= val;
+      if (cmd == '=')
+        k[2] = val * 0.01;
+      printValues();
+      break;
+    case 4:
+      if (cmd == '+')
+        k[3] += val;
+      if (cmd == '-')
+        k[3] -= val;
+      if (cmd == '=')
+        k[3] = val * 0.01;
+      printValues();
+      break;
+    case 5:
+      printValues();
+      break;
   }
 }
 
@@ -224,20 +224,20 @@ void loop()
       Serial.println("Error in calculating dt_1") ;
     }
 
-    alpha = (int((alpha + encoderPosAL * 0.06411413579) * 100) % 314) / 100.0; 
+    alpha = (int((alpha + encoderPosAL * 0.06411413579) * 100) % 314) / 100.0;
 
     float t1_w2 = (millis()) * 0.001;
     float dt_2 = t1_w2 - t2_w2;
     t2_w2 = t1_w2;
 
-     if (dt_2 != 0) 
-     {
-       w2 = (encoderPosAL * 0.06411413579) / dt_2;
-     }
-     else
-     {
-       Serial.println("Error in calculating dt_2") ;
-     }
+    if (dt_2 != 0)
+    {
+      w2 = (encoderPosAL * 0.06411413579) / dt_2;
+    }
+    else
+    {
+      Serial.println("Error in calculating dt_2") ;
+    }
 
     encoderPosAL = 0;
 
