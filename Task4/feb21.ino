@@ -35,7 +35,7 @@ float alpha = 0 ;
 
 volatile int encoderPosAL = 0;
 volatile int prev_encoderPosAL = 0; // left count
-float y_setpoint[4] = {-0.06, 0, 0, 0};
+float y_setpoint[4] = {-0.04, 0, 0, 0};
 
 float k[4] = {-11.454382 ,  -1.166420  , -0.017025  , -0.020705}; // negative sign in first two values mean the reaction wheel will move opposite to the direction of fall
 
@@ -296,7 +296,7 @@ void loop()
       nidec_motor_brake();
     }
     
-    dc_motor_forward(75);
+   // dc_motor_forward(75);
     
     prev_theta = theta;
 
