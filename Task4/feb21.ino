@@ -124,6 +124,8 @@ void setup()
   {
   } // stop everything if could not connect to MPU6050
   // Serial.println("MPU begin done!\n");
+  dc_motor_init();
+  Serial.println("DC motor begin done!\n");
 
   // Serial.println("Begin Device initialization:\n");
   nidec_motor_init();
@@ -293,7 +295,9 @@ void loop()
     {
       nidec_motor_brake();
     }
-    dc_motor_forward(15);
+    
+    dc_motor_forward(75);
+    
     prev_theta = theta;
 
     Serial.print("Theta : ");
