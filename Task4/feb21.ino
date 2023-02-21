@@ -14,7 +14,7 @@ float w2 = 0;
 float w1 = 0;
 float target_vel = 0.0;
 int loop_count = 0;
-int lt = 10;
+int lt = 5;
 float prev_w2 = 0;
 volatile long int random_angle = 0;
 int count = 0;
@@ -28,11 +28,16 @@ float alpha = 0 ;
 #define MAX_RPS 314
 #define MAX_TORQUE 255
 
+#define enA           7
+#define in1           22
+#define in2           23
+
+
 volatile int encoderPosAL = 0;
 volatile int prev_encoderPosAL = 0; // left count
-float y_setpoint[4] = {0.0, 0, 0, 0};
+float y_setpoint[4] = {-0.06, 0, 0, 0};
 
-float k[4] = { -40,   -7 ,  -0.01 ,  -0.1}; // negative sign in first two values mean the reaction wheel will move opposite to the direction of fall
+float k[4] = {-11.454382 ,  -1.166420  , -0.017025  , -0.020705}; // negative sign in first two values mean the reaction wheel will move opposite to the direction of fall
 
 int pos = 0;
 
@@ -191,6 +196,29 @@ int Tuning()
   }
 }
 
+void dc_motor_init()
+{
+  pinMode(enA, OUTPUT);
+  pinMode(in1, OUTPUT);
+  pinMode(in2, OUTPUT);
+  
+  // Turn off motors - Initial state
+  digitalWrite(in1, LOW);
+  digitalWrite(in2, LOW);
+}
+void dc_motor_forward(int enablePWM)
+{
+  //Serial.println(run_rear_motor);
+  analogWrite(enA, enablePWM);
+  digitalWrite(in1, LOW);
+  digitalWrite(in2, HIGH);
+}
+void dc_motor_backward(int enablePWM)
+{
+  analogWrite(enA, enablePWM);
+  digitalWrite(in1, HIGH);
+  digitalWrite(in2, LOW);
+}
 void printValues()
 {
   Serial.print("K1: ");
@@ -265,7 +293,7 @@ void loop()
     {
       nidec_motor_brake();
     }
-
+    dc_motor_forward(15);
     prev_theta = theta;
 
     Serial.print("Theta : ");
