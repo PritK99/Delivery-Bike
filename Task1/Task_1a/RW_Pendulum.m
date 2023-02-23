@@ -99,6 +99,7 @@ endfunction
 function dy = RW_pendulum_dynamics(y, m1, m2, l1,l2, wr, g, u)
   ##u=2*u
   I1= 0.0004883;
+  #I1= 0.00074035;
   I2= 0.0002125;
   dy(1,1) = y(2);
   dy(2,1) = (-(m1*l1+m2*l2)*g*sin(y(1))- u)/(I1+m1*l1*l1+m2*l2*l2);
@@ -140,6 +141,7 @@ endfunction
 ## Purpose: Declare the A and B matrices in this function.
 function [A, B] = RW_pendulum_AB_matrix(m1 , m2, l1,l2, wr, g)
   I1= 0.0004883;
+  #I1= 0.00074035;
   I2= 0.0002125; # Moment of Inertia of reaction wheel
   A = [0 1 0 0;(m1*l1+m2*l2)*g/(I1+m1*l1*l1+m2*l2*l2) 0 0 0;0 0 0 1;-1*(m1*l1+m2*l2)*g/(I1+m1*l1*l1+m2*l2*l2) 0 0 0];
   B = [0;-1*1/(I1+m1*l1*l1+m2*l2*l2);0;((1/(I1+m1*l1*l1+m2*l2*l2))+(1/I2))];  
@@ -189,8 +191,8 @@ endfunction
 ##          calculated using LQR Controller.
 function [t,y] = lqr_RW_pendulum(m1, m2, l1,l2, wr, g, y_setpoint, y0)
   [A, B] = RW_pendulum_AB_matrix(m1 , m2, l1, l2, wr, g);
-  Q = [10 0 0 0;0 1 0 0;0 0 0.1 0;0 0 0 1]  ;                   ## Initialise Q matrix
-  R = [20000];                   ## Initialise R 
+  Q = [100 0 0 0;0 10 0 0;0 0 1 0 ;0 0 0 1]  ;                   ## Initialise Q matrix
+  R = [3350 ];                   ## Initialise R 
   isstabilizable(A,B)
   K = lqr(A,B,Q,R);
   K
@@ -209,10 +211,11 @@ function RW_pendulum_main()
   m1 = 0.49;     # Mass of Pendulum Bar
   m2= 0.17;   # Mass of Reaction Wheel 
   l1= 0.08;      # COM of Bike
+  #l1= 0.1;      # COM of Bike
   l2 = 0.11;
   g = 9.8;    # Centre of Gravity
   y0 = [0; 0; 0; 0]; # Initial Conditions
-  y_setpoint = [-0.03; 0; 0; 0];  # Reference Point
+  y_setpoint = [-0.0; 0; 0; 0];  # Reference Point
   wr=0.05; #wheel radius
 
 
