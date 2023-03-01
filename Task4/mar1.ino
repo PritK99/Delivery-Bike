@@ -37,12 +37,15 @@ float alpha = 0 ;
 volatile int encoderPosAL = 0;
 volatile int prev_encoderPosAL = 0; // left count
 
-float k[4] = {-11.591530  , -1.186576  , -0.017087  , -0.020810}; // negative sign in first two values mean the reaction wheel will move opposite to the direction of fall
+float k[4] = {-11.582760  , -1.179519 ,  -0.017239 ,  -0.020962}; // negative sign in first two values mean the reaction wheel will move opposite to the direction of fall
 
 // Create a servo object
 Servo Servo1;
 int pos=0;
+int nextpos=0;
 #define servoPin      6   // Declare the Servo pin
+
+int scount = 0 ;
 
 /////////////NIDEC Motor//////////////
 void nidec_motor_init()
@@ -106,11 +109,13 @@ ISR(TIMER1_OVF_vect)
 void servo_init()
 {
   Servo1.attach(servoPin);
-  pos=90;
-  Servo1.write(pos);
+  pos=0;
+  Servo1.write(pos+125);
 }
 void servo_move(int nextpos)
 { 
+  nextpos=nextpos+125;
+  pos=pos+125;
   if(pos<nextpos)
   { for(int i=pos;i<=nextpos;i+=1)
     { Servo1.write(i);
@@ -269,6 +274,11 @@ void loop()
     Serial.print("Setpoint initiated : ") ;
     Serial.println(z) ;
   }
+  if (millis()>32000)
+  {
+    Serial.println("DC Motor on");
+    dc_motor_backward(90);
+  }
    else if (loop_count++ > lt)
   {
     Tuning(); // start tuning of bot
@@ -331,9 +341,9 @@ void loop()
       nidec_motor_brake();
     }
     
-    dc_motor_forward(90);
-    
     prev_theta = theta;
+
+    // servo_move(120);
 
     Serial.print("Theta : ");
     Serial.print(theta);
@@ -345,8 +355,10 @@ void loop()
     Serial.print(w2);
     Serial.print(" Alpha : ");
     Serial.print(alpha);
-    Serial.print(" Servo: ");
+    Serial.print(" pos: ");
     Serial.println(pos);
+    Serial.print(" nextpos: ");
+    Serial.println(nextpos);
 
     loop_count = 0;
   }
