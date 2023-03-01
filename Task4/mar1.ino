@@ -1,6 +1,7 @@
 #include "Wire.h"
 #include <MPU6050_light.h>
 #include <math.h>
+#include <Servo.h> 
 
 MPU6050 mpu(Wire);
 
@@ -14,7 +15,7 @@ float w2 = 0;
 float w1 = 0;
 float target_vel = 0.0;
 int loop_count = 0;
-int lt = 5;
+int lt = -1;
 float prev_w2 = 0;
 volatile long int random_angle = 0;
 int count = 0;
@@ -36,9 +37,12 @@ float alpha = 0 ;
 volatile int encoderPosAL = 0;
 volatile int prev_encoderPosAL = 0; // left count
 
-float k[4] = {-11.582760  , -1.179519 ,  -0.017239 ,  -0.020962}; // negative sign in first two values mean the reaction wheel will move opposite to the direction of fall
+float k[4] = {-11.591530  , -1.186576  , -0.017087  , -0.020810}; // negative sign in first two values mean the reaction wheel will move opposite to the direction of fall
 
-int pos = 0;
+// Create a servo object
+Servo Servo1;
+int pos=0;
+#define servoPin      6   // Declare the Servo pin
 
 /////////////NIDEC Motor//////////////
 void nidec_motor_init()
@@ -98,6 +102,30 @@ ISR(TIMER1_OVF_vect)
 }
 //////////////////////////////////////
 
+///////////Servo Motor//////////////
+void servo_init()
+{
+  Servo1.attach(servoPin);
+  pos=90;
+  Servo1.write(pos);
+}
+void servo_move(int nextpos)
+{ 
+  if(pos<nextpos)
+  { for(int i=pos;i<=nextpos;i+=1)
+    { Servo1.write(i);
+      delay(10);}
+  }
+  else if(pos>nextpos)
+  { for(int i=pos;i>=nextpos;i-=1)
+    { Servo1.write(i);
+      delay(10); }
+  }
+  else  { pos=nextpos; }
+  pos=nextpos;
+} 
+////////////////////////////////////
+
 /////////ENCODER////////
 void rencoderL()
 {
@@ -125,11 +153,11 @@ void setup()
   // Serial.println("MPU begin done!\n");
   dc_motor_init();
   Serial.println("DC motor begin done!\n");
-
-  // Serial.println("Begin Device initialization:\n");
   nidec_motor_init();
   // Serial.println("NIDEC initialized\n");
   timer1_init();
+  servo_init();
+  Serial.println("Servo initialized\n");
   pinMode(encodPinAL, INPUT);
   pinMode(encodPinBL, INPUT);
   digitalWrite(encodPinAL, HIGH);                               // turn on pullup resistor
@@ -235,12 +263,10 @@ float z = 0;
 
 void loop()
 {
-
-  int clock = millis() ;
-  if(clock<2000)
+  if(millis()<2000)
   {
     z = (x * M_PI / 180) + 0.05;
-    Serial.print("Setpoint initiated: ") ;
+    Serial.print("Setpoint initiated : ") ;
     Serial.println(z) ;
   }
    else if (loop_count++ > lt)
@@ -298,14 +324,14 @@ void loop()
 
     if (pwm > 0 or pwm < 0)
     {
-      nidec_motor_control(pwm);
+      nidec_motor_control(pwm*1.05);
     }
     else
     {
       nidec_motor_brake();
     }
     
-    dc_motor_forward(75);
+    dc_motor_forward(90);
     
     prev_theta = theta;
 
@@ -318,7 +344,9 @@ void loop()
     Serial.print(" W2 : ");
     Serial.print(w2);
     Serial.print(" Alpha : ");
-    Serial.println(alpha);
+    Serial.print(alpha);
+    Serial.print(" Servo: ");
+    Serial.println(pos);
 
     loop_count = 0;
   }
