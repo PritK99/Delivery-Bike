@@ -109,13 +109,12 @@ ISR(TIMER1_OVF_vect)
 void servo_init()
 {
   Servo1.attach(servoPin);
-  pos=0;
-  Servo1.write(pos+125);
+  pos=125;
+  Servo1.write(pos);//
 }
 void servo_move(int nextpos)
 { 
-  nextpos=nextpos+125;
-  pos=pos+125;
+//  nextpos=nextpos+125;
   if(pos<nextpos)
   { for(int i=pos;i<=nextpos;i+=1)
     { Servo1.write(i);
@@ -274,13 +273,14 @@ void loop()
     Serial.print("Setpoint initiated : ") ;
     Serial.println(z) ;
   }
-  if (millis()>32000)
+  else if (loop_count++ > lt)
+  {
+    if (millis()>18000)
   {
     Serial.println("DC Motor on");
     dc_motor_backward(90);
   }
-   else if (loop_count++ > lt)
-  {
+  
     Tuning(); // start tuning of bot
     float y_setpoint[4] = {z, 0, 0, 0};
 
