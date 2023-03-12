@@ -4,7 +4,7 @@
  * Filename: main.ino
  * Theme: Delivery Bike
  * Functions: nidec_motor_init(), nidec_motor_control(), nidec_motor_brake(), timer1_init(), void servo_init(),     servo_move(), rencoderL(), Tuning(), dc_motor_init(), dc_motor_forward(), dc_motor_backward(), printValues().
- * Global Variables: x, t2_w1, t2_w2, prev_theta, prev_alpha, pwm, w2, w1, z, target_vel, loop_count, lt, prev_w2, random_angle, count, alpha, brake, go, cw, encodPinAL, encodPinBL, MAX_RPS, MAX_TORQUE, enA, in1, in2, encoderPosAL, prev_encoderPosAL, K[4], pos, Servo1, nextpos, servoPin
+ * Global Variables: x, t2_w1, t2_w2, theta, prev_theta, prev_alpha, pwm, w2, w1, z, target_vel, loop_count, lt, prev_w2, random_angle, count, alpha, brake, go, cw, encodPinAL, encodPinBL, MAX_RPS, MAX_TORQUE, enA, in1, in2, encoderPosAL, prev_encoderPosAL, K[4], pos, Servo1, nextpos, servoPin, prev_proportional, proportional, derivative, integral, turn, lsa[5], kp, ki, kd
  */
 #include "Wire.h"
 #include <MPU6050_light.h>
@@ -21,10 +21,10 @@ float prev_alpha = 0.0;
 int pwm = 0;
 float w2 = 0;
 float w1 = 0;
-float z = 0;    // z is used to record the equilbrium point of bike dynamically during first 2 seconds.
+float z = 0; // z is used to record the equilbrium point of bike dynamically during first 2 seconds.
 float target_vel = 0.0;
-int loop_count = 0;     //loop_count keeps track of number of times loop() has been called and is used to give an external delay in the form of lt loops
-int lt = -1;    //lt controls the number of loops the code has to wait before executing loop() function again. when lt = -1, it indicates no external delay has been provided between calling loop() function.
+int loop_count = 0; // loop_count keeps track of number of times loop() has been called and is used to give an external delay in the form of lt loops
+int lt = -1;        // lt controls the number of loops the code has to wait before executing loop() function again. when lt = -1, it indicates no external delay has been provided between calling loop() function.
 float prev_w2 = 0;
 volatile long int random_angle = 0;
 float alpha = 0;
@@ -46,6 +46,10 @@ volatile int prev_encoderPosAL = 0; // left count
 
 float k[4] = {-11.582760, -1.179519, -0.017239, -0.020962}; // negative sign in first two values mean the reaction wheel will move opposite to the direction of fall
 
+float prev_proportional = 0, proportional = 0, derivative = 0, integral = 0, turn = 0;
+int lsa[5] = {0};
+float kp = 0, ki = 0, kd = 0;
+
 // Create a servo object
 Servo Servo1;
 int pos = 0;
@@ -54,12 +58,12 @@ int nextpos = 0;
 
 /////////////NIDEC Motor//////////////
 /*
-* Function Name: nidec_motor_init
-* Input: None
-* Output: None
-* Logic: Intializes the nidec motor
-* Example Call: nidec_motor_init()
-*/ 
+ * Function Name: nidec_motor_init
+ * Input: None
+ * Output: None
+ * Logic: Intializes the nidec motor
+ * Example Call: nidec_motor_init()
+ */
 void nidec_motor_init()
 {
     pinMode(brake, OUTPUT);
@@ -72,12 +76,12 @@ void nidec_motor_init()
 }
 
 /*
-* Function Name: nidec_motor_control
-* Input: pwm
-* Output: None
-* Logic: Moves the nidec motor as per the pwm given to it
-* Example Call: nidec_motor_control(100)
-*/ 
+ * Function Name: nidec_motor_control
+ * Input: pwm
+ * Output: None
+ * Logic: Moves the nidec motor as per the pwm given to it
+ * Example Call: nidec_motor_control(100)
+ */
 void nidec_motor_control(int pwm)
 {
     if (pwm < 0)
@@ -93,12 +97,12 @@ void nidec_motor_control(int pwm)
 }
 
 /*
-* Function Name: nidec_motor_brake
-* Input: None
-* Output: None
-* Logic: Stops the nidec motor
-* Example Call: nidec_motor_brake()
-*/ 
+ * Function Name: nidec_motor_brake
+ * Input: None
+ * Output: None
+ * Logic: Stops the nidec motor
+ * Example Call: nidec_motor_brake()
+ */
 void nidec_motor_brake()
 {
     digitalWrite(brake, LOW); // go=1
@@ -108,12 +112,12 @@ void nidec_motor_brake()
 
 /////////////Timer1 ISR for IMU///////
 /*
-* Function Name: timer1_init
-* Input: None
-* Output: None
-* Logic: Intializes the timer 1
-* Example Call: timer1_init()
-*/ 
+ * Function Name: timer1_init
+ * Input: None
+ * Output: None
+ * Logic: Intializes the timer 1
+ * Example Call: timer1_init()
+ */
 void timer1_init()
 {
     cli();         // Clears the global interrupts
@@ -140,12 +144,12 @@ ISR(TIMER1_OVF_vect)
 
 ///////////Servo Motor//////////////
 /*
-* Function Name: servo_init
-* Input: None
-* Output: None
-* Logic: Intializes the servo motor
-* Example Call: servo_init()
-*/ 
+ * Function Name: servo_init
+ * Input: None
+ * Output: None
+ * Logic: Intializes the servo motor
+ * Example Call: servo_init()
+ */
 void servo_init()
 {
     Servo1.attach(servoPin);
@@ -154,12 +158,12 @@ void servo_init()
 }
 
 /*
-* Function Name: servo_move
-* Input: nextpos
-* Output: None
-* Logic: Moves the servo to the position required
-* Example Call: servo_move(90)
-*/ 
+ * Function Name: servo_move
+ * Input: nextpos
+ * Output: None
+ * Logic: Moves the servo to the position required
+ * Example Call: servo_move(90)
+ */
 void servo_move(int nextpos)
 {
     //  nextpos=nextpos+125;
@@ -189,12 +193,12 @@ void servo_move(int nextpos)
 
 /////////ENCODER////////
 /*
-* Function Name: rencoderL
-* Input: None
-* Output: None
-* Logic: Increments and decrements value of encoderPosAL as per the motion of reaction wheel
-* Example Call: rencoderL()
-*/ 
+ * Function Name: rencoderL
+ * Input: None
+ * Output: None
+ * Logic: Increments and decrements value of encoderPosAL as per the motion of reaction wheel
+ * Example Call: rencoderL()
+ */
 void rencoderL()
 {
     if (digitalRead(encodPinBL) == HIGH)
@@ -209,12 +213,12 @@ void rencoderL()
 ////////////////////////////////////
 
 /*
-* Function Name: setup
-* Input: None
-* Output: None
-* Logic: Performs intial setup by intializing all the peripheral hardware such as DC motor, Servo motor, Nidec motor, encoders etc.
-* Example Call: setup()
-*/ 
+ * Function Name: setup
+ * Input: None
+ * Output: None
+ * Logic: Performs intial setup by intializing all the peripheral hardware such as DC motor, Servo motor, Nidec motor, encoders etc.
+ * Example Call: setup()
+ */
 void setup()
 {
     Serial.begin(9600);
@@ -242,12 +246,12 @@ void setup()
 }
 
 /*
-* Function Name: Tuning
-* Input: None
-* Output: None
-* Logic: To dynamically tune the values of K matrix during run-time of bot
-* Example Call: Tuning()
-*/ 
+ * Function Name: Tuning
+ * Input: None
+ * Output: None
+ * Logic: To dynamically tune the values of K matrix during run-time of bot
+ * Example Call: Tuning()
+ */
 int Tuning()
 {
     if (!Serial.available())
@@ -309,12 +313,12 @@ int Tuning()
 }
 
 /*
-* Function Name: dc_motor_init
-* Input: None
-* Output: Initializes the Rear DC Motor
-* Logic: Initialize motors
-* Example Call: dc_motor_init()
-*/ 
+ * Function Name: dc_motor_init
+ * Input: None
+ * Output: Initializes the Rear DC Motor
+ * Logic: Initialize motors
+ * Example Call: dc_motor_init()
+ */
 void dc_motor_init()
 {
     pinMode(enA, OUTPUT);
@@ -327,12 +331,12 @@ void dc_motor_init()
 }
 
 /*
-* Function Name: dc_motor_forward
-* Input: enablePWM
-* Output: Runs the motor in forward direction
-* Logic: Runs the motor in forward direction as per the PWM given
-* Example Call: dc_motor_forward(90)
-*/ 
+ * Function Name: dc_motor_forward
+ * Input: enablePWM
+ * Output: Runs the motor in forward direction
+ * Logic: Runs the motor in forward direction as per the PWM given
+ * Example Call: dc_motor_forward(90)
+ */
 void dc_motor_forward(int enablePWM)
 {
     // Serial.println(run_rear_motor);
@@ -342,12 +346,12 @@ void dc_motor_forward(int enablePWM)
 }
 
 /*
-* Function Name: dc_motor_backward
-* Input: enablePWM
-* Output: Runs the motor in backward direction
-* Logic: Runs the motor in backward direction as per the PWM given
-* Example Call: dc_motor_backward(90)
-*/ 
+ * Function Name: dc_motor_backward
+ * Input: enablePWM
+ * Output: Runs the motor in backward direction
+ * Logic: Runs the motor in backward direction as per the PWM given
+ * Example Call: dc_motor_backward(90)
+ */
 void dc_motor_backward(int enablePWM)
 {
     analogWrite(enA, enablePWM);
@@ -356,12 +360,12 @@ void dc_motor_backward(int enablePWM)
 }
 
 /*
-* Function Name: printValues()
-* Input: None
-* Output: Prints the values of K matrix
-* Logic: For debugging purpose and manipulting K values according to the bike
-* Example Call: printValues()
-*/ 
+ * Function Name: printValues()
+ * Input: None
+ * Output: Prints the values of K matrix
+ * Logic: For debugging purpose and manipulting K values according to the bike
+ * Example Call: printValues()
+ */
 void printValues()
 {
     Serial.print("K1: ");
@@ -375,12 +379,28 @@ void printValues()
 }
 
 /*
-* Function Name: loop()
-* Input: None
-* Output: None
-* Logic: main driver function
-* Example Call: None
-*/ 
+ * Function Name: printLSA()
+ * Input: None
+ * Output: Prints the values of Line Sensor Array
+ * Logic: For debugging purpose
+ * Example Call: printLSA()
+ */
+void printLSA()
+{
+    Serial.print(lsa[0]);
+    Serial.print(lsa[1]);
+    Serial.print(lsa[2]);
+    Serial.print(lsa[3]);
+    Serial.print(lsa[3]);
+}
+
+/*
+ * Function Name: loop()
+ * Input: None
+ * Output: None
+ * Logic: main driver function
+ * Example Call: None
+ */
 void loop()
 {
     if (millis() < 2000)
@@ -459,7 +479,20 @@ void loop()
 
         prev_theta = theta;
 
-        // servo_move(120);
+        lsa[0] = (analogRead(A0));
+        lsa[1] = (analogRead(A1));
+        lsa[2] = (analogRead(A2));
+        lsa[3] = (analogRead(A3));
+        lsa[4] = (analogRead(A4));
+
+        pos = (-5 * lsa[0] + -3 * lsa[1] + 1 * lsa[2] + 3 * lsa[3] + 5 * lsa[4]) / (lsa[0] + lsa[1] + lsa[2] + lsa[3] + lsa[4]);
+
+        prev_proportional = proportional;
+        proportional = pos - 1;
+        derivative = proportional - prev_proportional;
+        integral += proportional;
+
+        turn = proportional * kp + integral * ki + derivative * kd;
 
         Serial.print("Theta : ");
         Serial.print(theta);
