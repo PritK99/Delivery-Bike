@@ -1,6 +1,16 @@
-# Delivery-Bike 
+# Delivery Bike 
 
-## Introduction
+## Table of Contents
+
+- [Project](#Delivery-Bike)
+  - [Table of Contents](#table-of-contents)
+  - [About The Project](#about-the-project)
+  - [Demo](#demo)
+  - [File Structure](#file-structure)
+  - [Contributors](#contributors)
+  - [References](#references)
+  - [License](#license)
+## About The Project
 
 In this theme, we will develop a Self-Balancing Bike, which will deliver various items throughout the cityscape. The delivery order will be decided by the priority of the package, thus posing a challenge in path planning. While development, we will learn the basics of the Control System and LQR controller design. The main challenges faced in this theme will be:
 
@@ -12,6 +22,17 @@ Learnings: Robot Simulation (CoppeliaSim), Control Systems, Euler-Lagrange Mecha
 
 <img src = "https://portal.e-yantra.org/img/theme/db.png" alt = "image of delivery bike">
 
+## Contributors
+
+* [Kavan Gandhi](https://github.com/KGan31)
+* [Mihir Rathod](https://github.com/m-g-rathod)
+* [Prit Kanadiya](https://github.com/PritK99)
+* [Raghav Agarwal](https://github.com/Raghav323)
+
 ## References
 
 * Control Bootcamp playlist: https://www.youtube.com/playlist?list=PLMrJAkhIeNNR20Mz-VpzgfQs5zrYi085m
+
+## License
+
+[MIT License](https://opensource.org/licenses/MIT)
