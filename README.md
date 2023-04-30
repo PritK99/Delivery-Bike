@@ -1,4 +1,4 @@
-# Delivery Bike 
+# Delivery Bike (eyrc22_DB_3656)
 
 ## Table of Contents
 
@@ -36,3 +36,5 @@ Learnings: Robot Simulation (CoppeliaSim), Control Systems, Euler-Lagrange Mecha
 ## License
 
 [MIT License](https://opensource.org/licenses/MIT)
+
+<b>Note</b>:  This repository was made public only after the competition ended and the final code was uploaded for future references.
