@@ -22,6 +22,10 @@ Learnings: Robot Simulation (CoppeliaSim), Control Systems, Euler-Lagrange Mecha
 
 <img src = "https://portal.e-yantra.org/img/theme/db.png" alt = "image of delivery bike">
 
+## Demo
+
+![simulation](https://user-images.githubusercontent.com/103832825/235443915-3e6f3bae-71b2-47dc-a2bb-450c7bda7375.gif)
+
 ## Contributors
 
 * [Kavan Gandhi](https://github.com/KGan31)
