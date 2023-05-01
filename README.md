@@ -1,4 +1,4 @@
-# Delivery Bike (eyrc22_DB_3656)
+# Delivery Bike (e-Yantra)
 
 ## Table of Contents
 
