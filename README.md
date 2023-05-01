@@ -26,6 +26,8 @@ Learnings: Robot Simulation (CoppeliaSim), Control Systems, Euler-Lagrange Mecha
 
 ![simulation](https://user-images.githubusercontent.com/103832825/235443915-3e6f3bae-71b2-47dc-a2bb-450c7bda7375.gif)
 
+<a href="https://www.youtube.com/watch?v=v9KS5cBxRgg">Click here</a> to view the hardware implementation
+
 ## Contributors
 
 * [Kavan Gandhi](https://github.com/KGan31)
